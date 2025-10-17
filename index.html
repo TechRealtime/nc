@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Clips - Secure Password & Notes Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        .dark-theme {
+            --light: #121212;
+            --white: #1e1e1e;
+            --gray-light: #2d2d2d;
+            --dark: #f8f9fa;
+            --gray: #adb5bd;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            transition: var(--transition);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Authentication Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--white);
+            padding: 20px;
+        }
+
+        .auth-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            transition: var(--transition);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-header h1 {
+            color: var(--primary);
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .auth-header p {
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .form-control {
+            padding: 12px 16px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            width: 100%;
+            background-color: var(--white);
+            color: var(--dark);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-google {
+            background-color: var(--white);
+            color: var(--dark);
+            border: 1px solid var(--gray-light);
+        }
+
+        .btn-google:hover {
+            background-color: var(--gray-light);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--gray);
+        }
+
+        .auth-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .header {
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--white);
+            box-shadow: var(--shadow);
+            padding: 20px 0;
+            height: calc(100vh - 72px);
+            position: sticky;
+            top: 72px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .nav-tab {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-tab:hover {
+            background-color: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .nav-tab.active {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            border-left-color: var(--primary);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            background-color: var(--light);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .tab-title {
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .add-btn {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .add-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Password Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            color: var(--primary);
+        }
+
+        .card-field {
+            margin-bottom: 12px;
+        }
+
+        .field-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+
+        .field-value {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--gray-light);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .copy-btn:hover {
+            color: var(--primary);
+        }
+
+        /* Notes Cards */
+        .note-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            transition: var(--transition);
+            border-top: 4px solid var(--primary);
+        }
+
+        .note-card.yellow {
+            border-top-color: #ffd166;
+        }
+
+        .note-card.green {
+            border-top-color: #06d6a0;
+        }
+
+        .note-card.pink {
+            border-top-color: #ef476f;
+        }
+
+        .note-card.purple {
+            border-top-color: #7209b7;
+        }
+
+        .note-card.blue {
+            border-top-color: #118ab2;
+        }
+
+        .note-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark);
+        }
+
+        .note-content {
+            color: var(--gray);
+            line-height: 1.5;
+            max-height: 100px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .note-content.expanded {
+            max-height: none;
+        }
+
+        .read-more {
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* History Logs */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .history-item {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--info);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .history-action {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .history-time {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .history-details {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Settings */
+        .settings-section {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .settings-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .settings-option:last-child {
+            border-bottom: none;
+        }
+
+        .option-label {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .option-title {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .option-desc {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray);
+            transition: var(--transition);
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: var(--white);
+            transition: var(--transition);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: var(--dark);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background-color: var(--gray-light);
+            color: var(--dark);
+        }
+
+        .btn-cancel:hover {
+            background-color: #d1d5db;
+        }
+
+        .btn-save {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-save:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .color-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .color-option.selected {
+            border-color: var(--dark);
+        }
+
+        .color-default {
+            background-color: var(--primary);
+        }
+
+        .color-yellow {
+            background-color: #ffd166;
+        }
+
+        .color-green {
+            background-color: #06d6a0;
+        }
+
+        .color-pink {
+            background-color: #ef476f;
+        }
+
+        .color-purple {
+            background-color: #7209b7;
+        }
+
+        .color-blue {
+            background-color: #118ab2;
+        }
+
+        /* Confirmation Modal */
+        .confirmation-modal .modal-content {
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .confirmation-text {
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .confirmation-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .btn-confirm {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-confirm:hover {
+            background-color: #e11574;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--white);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+            }
+
+            .nav-tabs {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 10px;
+            }
+
+            .nav-tab {
+                border-left: none;
+                border-bottom: 3px solid transparent;
+                white-space: nowrap;
+            }
+
+            .nav-tab.active {
+                border-left: none;
+                border-bottom-color: var(--primary);
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-info span {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Section -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Notes Clips</h1>
+                <p>Secure Password & Notes Manager</p>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="login-identifier">Username or Email</label>
+                    <input type="text" id="login-identifier" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="login-password" class="form-control" required>
+                        <button type="button" class="password-toggle" id="login-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="login-btn">
+                    <span>Login</span>
+                </button>
+                <div class="error-message" id="login-error"></div>
+                
+                <div class="divider">or</div>
+                
+                <button type="button" class="btn btn-google" id="google-login-btn">
+                    <i class="fab fa-google"></i>
+                    <span>Login with Google</span>
+                </button>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a class="auth-link" id="show-signup">Create one!</a></p>
+                </div>
+            </form>
+            
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="signup-username">Username</label>
+                    <input type="text" id="signup-username" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email (optional)</label>
+                    <input type="email" id="signup-email" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="signup-password" class="form-control" required>
+                        <button type="button" class="password-toggle" id="signup-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirm Password</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="signup-confirm-password" class="form-control" required>
+                        <button type="button" class="password-toggle" id="signup-confirm-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="signup-btn">
+                    <span>Sign Up</span>
+                </button>
+                <div class="error-message" id="signup-error"></div>
+                
+                <div class="divider">or</div>
+                
+                <button type="button" class="btn btn-google" id="google-signup-btn">
+                    <i class="fab fa-google"></i>
+                    <span>Sign up with Google</span>
+                </button>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a class="auth-link" id="show-login">Login here!</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="dashboard">
+        <!-- Header -->
+        <header class="header">
+            <div class="container header-content">
+                <div class="logo">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h1>Notes Clips</h1>
+                </div>
+                <div class="user-menu">
+                    <button class="theme-toggle" id="theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="user-info">
+                        <div class="avatar" id="user-avatar">U</div>
+                        <span id="username-display">User</span>
+                    </div>
+                    <button class="logout-btn" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar">
+                <div class="nav-tabs">
+                    <a href="#" class="nav-tab active" data-tab="passwords">
+                        <i class="fas fa-key"></i>
+                        <span>Passwords</span>
+                    </a>
+                    <a href="#" class="nav-tab" data-tab="notes">
+                        <i class="fas fa-sticky-note"></i>
+                        <span>Notes</span>
+                    </a>
+                    <a href="#" class="nav-tab" data-tab="history">
+                        <i class="fas fa-history"></i>
+                        <span>History</span>
+                    </a>
+                    <a href="#" class="nav-tab" data-tab="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Passwords Tab -->
+                <div id="passwords-tab" class="tab-content active">
+                    <div class="tab-header">
+                        <h2 class="tab-title">Saved Passwords</h2>
+                        <button class="add-btn" id="add-password-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="cards-grid" id="passwords-container">
+                        <!-- Password cards will be dynamically added here -->
+                    </div>
+                </div>
+                
+                <!-- Notes Tab -->
+                <div id="notes-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2 class="tab-title">Personal Notes</h2>
+                        <button class="add-btn" id="add-note-btn">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="cards-grid" id="notes-container">
+                        <!-- Note cards will be dynamically added here -->
+                    </div>
+                </div>
+                
+                <!-- History Tab -->
+                <div id="history-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2 class="tab-title">Activity History</h2>
+                    </div>
+                    <div class="history-list" id="history-container">
+                        <!-- History items will be dynamically added here -->
+                    </div>
+                </div>
+                
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-content">
+                    <div class="tab-header">
+                        <h2 class="tab-title">Settings & Preferences</h2>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="settings-title">
+                            <i class="fas fa-palette"></i>
+                            <span>Appearance</span>
+                        </h3>
+                        <div class="settings-option">
+                            <div class="option-label">
+                                <span class="option-title">Dark Mode</span>
+                                <span class="option-desc">Switch between light and dark themes</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dark-mode-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-option">
+                            <div class="option-label">
+                                <span class="option-title">Show Passwords</span>
+                                <span class="option-desc">Display passwords in plain text on dashboard</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="show-passwords-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3 class="settings-title">
+                            <i class="fas fa-user-cog"></i>
+                            <span>Account Settings</span>
+                        </h3>
+                        <div class="settings-option">
+                            <div class="option-label">
+                                <span class="option-title">Change Password</span>
+                                <span class="option-desc">Update your portal password</span>
+                            </div>
+                            <button class="btn btn-primary" id="change-password-btn">Change</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    
+    <!-- Add/Edit Password Modal -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="password-modal-title">Add Password</h3>
+                <button class="close-modal" id="close-password-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="platform-name">This is password of:</label>
+                    <input type="text" id="platform-name" class="form-control" placeholder="e.g., Gmail, Facebook" required>
+                </div>
+                <div class="form-group">
+                    <label for="platform-username">Username:</label>
+                    <input type="text" id="platform-username" class="form-control" placeholder="Add username (optional)">
+                </div>
+                <div class="form-group">
+                    <label for="platform-password">Password:</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="platform-password" class="form-control" placeholder="Add password" required>
+                        <button type="button" class="password-toggle" id="platform-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" id="add-second-password-btn">+ Add 2nd Password</button>
+                </div>
+                <div class="form-group" id="second-password-group" style="display: none;">
+                    <label for="platform-password2">Second Password:</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="platform-password2" class="form-control" placeholder="Add second password (optional)">
+                        <button type="button" class="password-toggle" id="platform-password2-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancel-password-btn">Cancel</button>
+                    <button class="btn btn-save" id="save-password-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Note Modal -->
+    <div id="note-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="note-modal-title">Add Note</h3>
+                <button class="close-modal" id="close-note-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="note-title">Title:</label>
+                    <input type="text" id="note-title" class="form-control" placeholder="Note title" required>
+                </div>
+                <div class="form-group">
+                    <label for="note-content">Content:</label>
+                    <textarea id="note-content" class="form-control" rows="5" placeholder="Write your note here..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Color:</label>
+                    <div class="color-options">
+                        <div class="color-option color-default selected" data-color="default"></div>
+                        <div class="color-option color-yellow" data-color="yellow"></div>
+                        <div class="color-option color-green" data-color="green"></div>
+                        <div class="color-option color-pink" data-color="pink"></div>
+                        <div class="color-option color-purple" data-color="purple"></div>
+                        <div class="color-option color-blue" data-color="blue"></div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancel-note-btn">Cancel</button>
+                    <button class="btn btn-save" id="save-note-btn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Change Password Modal -->
+    <div id="change-password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Change Password</h3>
+                <button class="close-modal" id="close-change-password-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="current-password">Current Password:</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="current-password" class="form-control" required>
+                        <button type="button" class="password-toggle" id="current-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="new-password">New Password:</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="new-password" class="form-control" required>
+                        <button type="button" class="password-toggle" id="new-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-new-password">Confirm New Password:</label>
+                    <div class="input-with-icon">
+                        <input type="password" id="confirm-new-password" class="form-control" required>
+                        <button type="button" class="password-toggle" id="confirm-new-password-toggle">
+                            <i class="far fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancel-change-password-btn">Cancel</button>
+                    <button class="btn btn-save" id="save-change-password-btn">Change Password</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="modal confirmation-modal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <p class="confirmation-text" id="confirmation-text">Are you sure you want to delete this item?</p>
+                <div class="confirmation-actions">
+                    <button class="btn btn-cancel" id="cancel-confirmation-btn">Cancel</button>
+                    <button class="btn btn-confirm" id="confirm-action-btn">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAHBBhvGJNyBQspqn2EP7BEPudyBR-j0iU",
+            authDomain: "notes-clip.firebaseapp.com",
+            projectId: "notes-clip",
+            storageBucket: "notes-clip.firebasestorage.app",
+            messagingSenderId: "788529103701",
+            appId: "1:788529103701:web:ecb2f8b3a39fd97c87e5dc",
+            measurementId: "G-C2F6NREENT"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // Google Auth Provider
+        const provider = new firebase.auth.GoogleAuthProvider();
+    </script>
+
+    <!-- Application JavaScript -->
+    <script>
+        // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const dashboard = document.getElementById('dashboard');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
+        const loginError = document.getElementById('login-error');
+        const signupError = document.getElementById('signup-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        const themeToggle = document.getElementById('theme-toggle');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const showPasswordsToggle = document.getElementById('show-passwords-toggle');
+        const userAvatar = document.getElementById('user-avatar');
+        const usernameDisplay = document.getElementById('username-display');
+        
+        // Tab Navigation
+        const navTabs = document.querySelectorAll('.nav-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Password Manager Elements
+        const addPasswordBtn = document.getElementById('add-password-btn');
+        const passwordsContainer = document.getElementById('passwords-container');
+        const passwordModal = document.getElementById('password-modal');
+        const closePasswordModal = document.getElementById('close-password-modal');
+        const cancelPasswordBtn = document.getElementById('cancel-password-btn');
+        const savePasswordBtn = document.getElementById('save-password-btn');
+        const passwordModalTitle = document.getElementById('password-modal-title');
+        const addSecondPasswordBtn = document.getElementById('add-second-password-btn');
+        const secondPasswordGroup = document.getElementById('second-password-group');
+        
+        // Notes Manager Elements
+        const addNoteBtn = document.getElementById('add-note-btn');
+        const notesContainer = document.getElementById('notes-container');
+        const noteModal = document.getElementById('note-modal');
+        const closeNoteModal = document.getElementById('close-note-modal');
+        const cancelNoteBtn = document.getElementById('cancel-note-btn');
+        const saveNoteBtn = document.getElementById('save-note-btn');
+        const noteModalTitle = document.getElementById('note-modal-title');
+        const colorOptions = document.querySelectorAll('.color-option');
+        
+        // History Elements
+        const historyContainer = document.getElementById('history-container');
+        
+        // Settings Elements
+        const changePasswordBtn = document.getElementById('change-password-btn');
+        const changePasswordModal = document.getElementById('change-password-modal');
+        const closeChangePasswordModal = document.getElementById('close-change-password-modal');
+        const cancelChangePasswordBtn = document.getElementById('cancel-change-password-btn');
+        const saveChangePasswordBtn = document.getElementById('save-change-password-btn');
+        
+        // Confirmation Modal
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationText = document.getElementById('confirmation-text');
+        const cancelConfirmationBtn = document.getElementById('cancel-confirmation-btn');
+        const confirmActionBtn = document.getElementById('confirm-action-btn');
+        
+        // Password Toggle Elements
+        const passwordToggles = document.querySelectorAll('.password-toggle');
+        
+        // Application State
+        let currentUser = null;
+        let passwords = [];
+        let notes = [];
+        let history = [];
+        let editingItem = null;
+        let selectedColor = 'default';
+        let showPasswords = false;
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', initApp);
+        
+        function initApp() {
+            // Check authentication state
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    showDashboard();
+                    loadUserData();
+                } else {
+                    showAuth();
+                }
+            });
+            
+            // Set up event listeners
+            setupEventListeners();
+        }
+        
+        function setupEventListeners() {
+            // Authentication
+            showSignupLink.addEventListener('click', showSignupForm);
+            showLoginLink.addEventListener('click', showLoginForm);
+            loginForm.addEventListener('submit', handleLogin);
+            signupForm.addEventListener('submit', handleSignup);
+            document.getElementById('google-login-btn').addEventListener('click', handleGoogleLogin);
+            document.getElementById('google-signup-btn').addEventListener('click', handleGoogleSignup);
+            logoutBtn.addEventListener('click', handleLogout);
+            
+            // Navigation
+            navTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    switchTab(tab.dataset.tab);
+                });
+            });
+            
+            // Theme Toggle
+            themeToggle.addEventListener('click', toggleTheme);
+            darkModeToggle.addEventListener('change', toggleDarkMode);
+            
+            // Password Visibility Toggle
+            showPasswordsToggle.addEventListener('change', togglePasswordVisibility);
+            
+            // Password Manager
+            addPasswordBtn.addEventListener('click', () => openPasswordModal());
+            closePasswordModal.addEventListener('click', () => closeModal(passwordModal));
+            cancelPasswordBtn.addEventListener('click', () => closeModal(passwordModal));
+            savePasswordBtn.addEventListener('click', savePassword);
+            addSecondPasswordBtn.addEventListener('click', toggleSecondPassword);
+            
+            // Notes Manager
+            addNoteBtn.addEventListener('click', () => openNoteModal());
+            closeNoteModal.addEventListener('click', () => closeModal(noteModal));
+            cancelNoteBtn.addEventListener('click', () => closeModal(noteModal));
+            saveNoteBtn.addEventListener('click', saveNote);
+            
+            // Color Selection
+            colorOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    colorOptions.forEach(opt => opt.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedColor = option.dataset.color;
+                });
+            });
+            
+            // Settings
+            changePasswordBtn.addEventListener('click', () => openModal(changePasswordModal));
+            closeChangePasswordModal.addEventListener('click', () => closeModal(changePasswordModal));
+            cancelChangePasswordBtn.addEventListener('click', () => closeModal(changePasswordModal));
+            saveChangePasswordBtn.addEventListener('click', changePassword);
+            
+            // Confirmation Modal
+            cancelConfirmationBtn.addEventListener('click', () => closeModal(confirmationModal));
+            
+            // Password Toggles
+            passwordToggles.forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const input = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+        }
+        
+        // Authentication Functions
+        function showAuth() {
+            authContainer.style.display = 'flex';
+            dashboard.style.display = 'none';
+        }
+        
+        function showDashboard() {
+            authContainer.style.display = 'none';
+            dashboard.style.display = 'flex';
+            
+            // Update user info
+            if (currentUser) {
+                const displayName = currentUser.displayName || currentUser.email || 'User';
+                usernameDisplay.textContent = displayName;
+                userAvatar.textContent = displayName.charAt(0).toUpperCase();
+                
+                // Load user preferences
+                loadUserPreferences();
+            }
+        }
+        
+        function showLoginForm() {
+            loginForm.style.display = 'flex';
+            signupForm.style.display = 'none';
+            clearErrors();
+        }
+        
+        function showSignupForm() {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'flex';
+            clearErrors();
+        }
+        
+        function clearErrors() {
+            loginError.style.display = 'none';
+            signupError.style.display = 'none';
+        }
+        
+        function showError(element, message) {
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('login-identifier').value;
+            const password = document.getElementById('login-password').value;
+            const loginBtn = document.getElementById('login-btn');
+            
+            // Show loading state
+            loginBtn.innerHTML = '<div class="spinner"></div>';
+            loginBtn.disabled = true;
+            
+            try {
+                // Try to sign in with email/password
+                await auth.signInWithEmailAndPassword(identifier, password);
+                // Success - user will be redirected via onAuthStateChanged
+            } catch (error) {
+                // If email login fails, try with username
+                if (error.code === 'auth/user-not-found') {
+                    try {
+                        // In a real app, you would look up the email by username in Firestore
+                        // For this demo, we'll assume the identifier is the email
+                        showError(loginError, 'Invalid login credentials. Please try again.');
+                    } catch (err) {
+                        showError(loginError, 'Invalid login credentials. Please try again.');
+                    }
+                } else {
+                    showError(loginError, error.message);
+                }
+            } finally {
+                // Reset button state
+                loginBtn.innerHTML = '<span>Login</span>';
+                loginBtn.disabled = false;
+            }
+        }
+        
+        async function handleSignup(e) {
+            e.preventDefault();
+            const username = document.getElementById('signup-username').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            const signupBtn = document.getElementById('signup-btn');
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                showError(signupError, 'Passwords do not match.');
+                return;
+            }
+            
+            // Show loading state
+            signupBtn.innerHTML = '<div class="spinner"></div>';
+            signupBtn.disabled = true;
+            
+            try {
+                // Create user with email and password
+                const userCredential = await auth.createUserWithEmailAndPassword(email || `${username}@notesclips.com`, password);
+                
+                // Update user profile with username
+                await userCredential.user.updateProfile({
+                    displayName: username
+                });
+                
+                // Create user document in Firestore
+                await db.collection('users').doc(userCredential.user.uid).set({
+                    username: username,
+                    email: email || '',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Success - user will be redirected via onAuthStateChanged
+            } catch (error) {
+                showError(signupError, error.message);
+            } finally {
+                // Reset button state
+                signupBtn.innerHTML = '<span>Sign Up</span>';
+                signupBtn.disabled = false;
+            }
+        }
+        
+        async function handleGoogleLogin() {
+            try {
+                await auth.signInWithPopup(provider);
+                // Success - user will be redirected via onAuthStateChanged
+            } catch (error) {
+                showError(loginError, error.message);
+            }
+        }
+        
+        async function handleGoogleSignup() {
+            try {
+                await auth.signInWithPopup(provider);
+                // Success - user will be redirected via onAuthStateChanged
+            } catch (error) {
+                showError(signupError, error.message);
+            }
+        }
+        
+        async function handleLogout() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Error signing out:', error);
+            }
+        }
+        
+        // Navigation Functions
+        function switchTab(tabName) {
+            // Update active tab
+            navTabs.forEach(tab => {
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Show active content
+            tabContents.forEach(content => {
+                if (content.id === `${tabName}-tab`) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+        }
+        
+        // Theme Functions
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            const isDark = document.body.classList.contains('dark-theme');
+            themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            darkModeToggle.checked = isDark;
+            
+            // Save preference to Firestore
+            if (currentUser) {
+                db.collection('userPreferences').doc(currentUser.uid).set({
+                    darkMode: isDark
+                }, { merge: true });
+            }
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-theme', darkModeToggle.checked);
+            themeToggle.innerHTML = darkModeToggle.checked ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            
+            // Save preference to Firestore
+            if (currentUser) {
+                db.collection('userPreferences').doc(currentUser.uid).set({
+                    darkMode: darkModeToggle.checked
+                }, { merge: true });
+            }
+        }
+        
+        function togglePasswordVisibility() {
+            showPasswords = showPasswordsToggle.checked;
+            renderPasswords();
+            
+            // Save preference to Firestore
+            if (currentUser) {
+                db.collection('userPreferences').doc(currentUser.uid).set({
+                    showPasswords: showPasswords
+                }, { merge: true });
+            }
+        }
+        
+        // Modal Functions
+        function openModal(modal) {
+            modal.style.display = 'flex';
+        }
+        
+        function closeModal(modal) {
+            modal.style.display = 'none';
+            resetForm(modal);
+            editingItem = null;
+        }
+        
+        function resetForm(modal) {
+            const inputs = modal.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset color selection
+            colorOptions.forEach(opt => opt.classList.remove('selected'));
+            document.querySelector('.color-option.color-default').classList.add('selected');
+            selectedColor = 'default';
+            
+            // Reset second password field
+            secondPasswordGroup.style.display = 'none';
+        }
+        
+        // Password Manager Functions
+        function openPasswordModal(item = null) {
+            editingItem = item;
+            
+            if (item) {
+                passwordModalTitle.textContent = 'Edit Password';
+                document.getElementById('platform-name').value = item.platformName;
+                document.getElementById('platform-username').value = item.username || '';
+                document.getElementById('platform-password').value = item.password1;
+                
+                if (item.password2) {
+                    document.getElementById('platform-password2').value = item.password2;
+                    secondPasswordGroup.style.display = 'block';
+                }
+            } else {
+                passwordModalTitle.textContent = 'Add Password';
+            }
+            
+            openModal(passwordModal);
+        }
+        
+        function toggleSecondPassword() {
+            if (secondPasswordGroup.style.display === 'none') {
+                secondPasswordGroup.style.display = 'block';
+            } else {
+                secondPasswordGroup.style.display = 'none';
+                document.getElementById('platform-password2').value = '';
+            }
+        }
+        
+        async function savePassword() {
+            const platformName = document.getElementById('platform-name').value;
+            const username = document.getElementById('platform-username').value;
+            const password1 = document.getElementById('platform-password').value;
+            const password2 = document.getElementById('platform-password2').value;
+            
+            if (!platformName || !password1) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            try {
+                if (editingItem) {
+                    // Update existing password
+                    await db.collection('passwords').doc(editingItem.id).update({
+                        platformName: platformName,
+                        username: username,
+                        password1: password1,
+                        password2: password2 || '',
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Log the action
+                    await logHistory('Updated password', `Updated password for ${platformName}`);
+                } else {
+                    // Add new password
+                    await db.collection('passwords').add({
+                        userId: currentUser.uid,
+                        platformName: platformName,
+                        username: username,
+                        password1: password1,
+                        password2: password2 || '',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Log the action
+                    await logHistory('Added password', `Added password for ${platformName}`);
+                }
+                
+                closeModal(passwordModal);
+                loadPasswords();
+            } catch (error) {
+                console.error('Error saving password:', error);
+                alert('Error saving password. Please try again.');
+            }
+        }
+        
+        async function deletePassword(id, platformName) {
+            openConfirmationModal('Are you sure you want to delete this password?', async () => {
+                try {
+                    await db.collection('passwords').doc(id).delete();
+                    
+                    // Log the action
+                    await logHistory('Deleted password', `Deleted password for ${platformName}`);
+                    
+                    loadPasswords();
+                } catch (error) {
+                    console.error('Error deleting password:', error);
+                    alert('Error deleting password. Please try again.');
+                }
+            });
+        }
+        
+        // Notes Manager Functions
+        function openNoteModal(item = null) {
+            editingItem = item;
+            
+            if (item) {
+                noteModalTitle.textContent = 'Edit Note';
+                document.getElementById('note-title').value = item.title;
+                document.getElementById('note-content').value = item.content;
+                
+                // Set color
+                colorOptions.forEach(opt => opt.classList.remove('selected'));
+                document.querySelector(`.color-option.color-${item.color}`).classList.add('selected');
+                selectedColor = item.color;
+            } else {
+                noteModalTitle.textContent = 'Add Note';
+            }
+            
+            openModal(noteModal);
+        }
+        
+        async function saveNote() {
+            const title = document.getElementById('note-title').value;
+            const content = document.getElementById('note-content').value;
+            
+            if (!title || !content) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            try {
+                if (editingItem) {
+                    // Update existing note
+                    await db.collection('notes').doc(editingItem.id).update({
+                        title: title,
+                        content: content,
+                        color: selectedColor,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Log the action
+                    await logHistory('Updated note', `Updated note: ${title}`);
+                } else {
+                    // Add new note
+                    await db.collection('notes').add({
+                        userId: currentUser.uid,
+                        title: title,
+                        content: content,
+                        color: selectedColor,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Log the action
+                    await logHistory('Added note', `Added note: ${title}`);
+                }
+                
+                closeModal(noteModal);
+                loadNotes();
+            } catch (error) {
+                console.error('Error saving note:', error);
+                alert('Error saving note. Please try again.');
+            }
+        }
+        
+        async function deleteNote(id, title) {
+            openConfirmationModal('Are you sure you want to delete this note?', async () => {
+                try {
+                    await db.collection('notes').doc(id).delete();
+                    
+                    // Log the action
+                    await logHistory('Deleted note', `Deleted note: ${title}`);
+                    
+                    loadNotes();
+                } catch (error) {
+                    console.error('Error deleting note:', error);
+                    alert('Error deleting note. Please try again.');
+                }
+            });
+        }
+        
+        // Settings Functions
+        async function changePassword() {
+            const currentPassword = document.getElementById('current-password').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmNewPassword = document.getElementById('confirm-new-password').value;
+            
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                alert('Please fill in all fields.');
+                return;
+            }
+            
+            if (newPassword !== confirmNewPassword) {
+                alert('New passwords do not match.');
+                return;
+            }
+            
+            try {
+                // Reauthenticate user
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email, 
+                    currentPassword
+                );
+                await currentUser.reauthenticateWithCredential(credential);
+                
+                // Update password
+                await currentUser.updatePassword(newPassword);
+                
+                // Log the action
+                await logHistory('Changed password', 'User changed their portal password');
+                
+                alert('Password changed successfully!');
+                closeModal(changePasswordModal);
+            } catch (error) {
+                console.error('Error changing password:', error);
+                alert('Error changing password. Please check your current password and try again.');
+            }
+        }
+        
+        // Confirmation Modal Functions
+        function openConfirmationModal(message, confirmCallback) {
+            confirmationText.textContent = message;
+            openModal(confirmationModal);
+            
+            // Set up confirm action
+            confirmActionBtn.onclick = () => {
+                closeModal(confirmationModal);
+                confirmCallback();
+            };
+        }
+        
+        // Data Loading Functions
+        async function loadUserData() {
+            await loadPasswords();
+            await loadNotes();
+            await loadHistory();
+        }
+        
+        async function loadUserPreferences() {
+            try {
+                const prefsDoc = await db.collection('userPreferences').doc(currentUser.uid).get();
+                
+                if (prefsDoc.exists) {
+                    const prefs = prefsDoc.data();
+                    
+                    // Set dark mode
+                    if (prefs.darkMode) {
+                        document.body.classList.add('dark-theme');
+                        darkModeToggle.checked = true;
+                        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                    }
+                    
+                    // Set password visibility
+                    if (prefs.showPasswords) {
+                        showPasswordsToggle.checked = true;
+                        showPasswords = true;
+                        renderPasswords();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user preferences:', error);
+            }
+        }
+        
+        async function loadPasswords() {
+            try {
+                const snapshot = await db.collection('passwords')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                passwords = [];
+                snapshot.forEach(doc => {
+                    passwords.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                renderPasswords();
+            } catch (error) {
+                console.error('Error loading passwords:', error);
+            }
+        }
+        
+        function renderPasswords() {
+            passwordsContainer.innerHTML = '';
+            
+            if (passwords.length === 0) {
+                passwordsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-key" style="font-size: 48px; color: var(--gray); margin-bottom: 16px;"></i>
+                        <h3>No Passwords Saved</h3>
+                        <p>Click the + button to add your first password</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            passwords.forEach(password => {
+                const passwordCard = document.createElement('div');
+                passwordCard.className = 'card';
+                
+                passwordCard.innerHTML = `
+                    <div class="card-header">
+                        <h3 class="card-title">${password.platformName}</h3>
+                        <div class="card-actions">
+                            <button class="action-btn edit-password" data-id="${password.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-password" data-id="${password.id}" data-name="${password.platformName}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${password.username ? `
+                    <div class="card-field">
+                        <div class="field-label">Username</div>
+                        <div class="field-value">
+                            <span class="field-text">${password.username}</span>
+                            <button class="copy-btn" data-value="${password.username}">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+                    <div class="card-field">
+                        <div class="field-label">Password</div>
+                        <div class="field-value">
+                            <span class="field-text">${showPasswords ? password.password1 : '••••••••'}</span>
+                            <button class="copy-btn" data-value="${password.password1}">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${password.password2 ? `
+                    <div class="card-field">
+                        <div class="field-label">Second Password</div>
+                        <div class="field-value">
+                            <span class="field-text">${showPasswords ? password.password2 : '••••••••'}</span>
+                            <button class="copy-btn" data-value="${password.password2}">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+                
+                passwordsContainer.appendChild(passwordCard);
+            });
+            
+            // Add event listeners for the new elements
+            document.querySelectorAll('.edit-password').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const passwordId = btn.dataset.id;
+                    const password = passwords.find(p => p.id === passwordId);
+                    openPasswordModal(password);
+                });
+            });
+            
+            document.querySelectorAll('.delete-password').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const passwordId = btn.dataset.id;
+                    const platformName = btn.dataset.name;
+                    deletePassword(passwordId, platformName);
+                });
+            });
+            
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = btn.dataset.value;
+                    copyToClipboard(value);
+                    
+                    // Show feedback
+                    const originalIcon = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        btn.innerHTML = originalIcon;
+                    }, 2000);
+                });
+            });
+        }
+        
+        async function loadNotes() {
+            try {
+                const snapshot = await db.collection('notes')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                notes = [];
+                snapshot.forEach(doc => {
+                    notes.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                renderNotes();
+            } catch (error) {
+                console.error('Error loading notes:', error);
+            }
+        }
+        
+        function renderNotes() {
+            notesContainer.innerHTML = '';
+            
+            if (notes.length === 0) {
+                notesContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-sticky-note" style="font-size: 48px; color: var(--gray); margin-bottom: 16px;"></i>
+                        <h3>No Notes Created</h3>
+                        <p>Click the + button to add your first note</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            notes.forEach(note => {
+                const noteCard = document.createElement('div');
+                noteCard.className = `note-card ${note.color}`;
+                
+                // Truncate content if too long
+                const content = note.content.length > 150 ? 
+                    note.content.substring(0, 150) + '...' : 
+                    note.content;
+                
+                noteCard.innerHTML = `
+                    <div class="card-header">
+                        <h3 class="note-title">${note.title}</h3>
+                        <div class="card-actions">
+                            <button class="action-btn edit-note" data-id="${note.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-note" data-id="${note.id}" data-name="${note.title}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="note-content">
+                        ${content.replace(/\n/g, '<br>')}
+                    </div>
+                    ${note.content.length > 150 ? `
+                    <div class="read-more">Read more</div>
+                    ` : ''}
+                `;
+                
+                notesContainer.appendChild(noteCard);
+            });
+            
+            // Add event listeners for the new elements
+            document.querySelectorAll('.edit-note').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const noteId = btn.dataset.id;
+                    const note = notes.find(n => n.id === noteId);
+                    openNoteModal(note);
+                });
+            });
+            
+            document.querySelectorAll('.delete-note').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const noteId = btn.dataset.id;
+                    const noteTitle = btn.dataset.name;
+                    deleteNote(noteId, noteTitle);
+                });
+            });
+            
+            document.querySelectorAll('.read-more').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const noteContent = btn.previousElementSibling;
+                    noteContent.classList.toggle('expanded');
+                    btn.textContent = noteContent.classList.contains('expanded') ? 'Read less' : 'Read more';
+                });
+            });
+        }
+        
+        async function loadHistory() {
+            try {
+                const snapshot = await db.collection('history')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
+                
+                history = [];
+                snapshot.forEach(doc => {
+                    history.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                renderHistory();
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+        
+        function renderHistory() {
+            historyContainer.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-history" style="font-size: 48px; color: var(--gray); margin-bottom: 16px;"></i>
+                        <h3>No Activity History</h3>
+                        <p>Your activity will appear here</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            history.forEach(log => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                // Format timestamp
+                const timestamp = log.timestamp ? 
+                    new Date(log.timestamp.toDate()).toLocaleString() : 
+                    'Unknown time';
+                
+                historyItem.innerHTML = `
+                    <div class="history-header">
+                        <span class="history-action">${log.action}</span>
+                        <span class="history-time">${timestamp}</span>
+                    </div>
+                    <div class="history-details">${log.details}</div>
+                `;
+                
+                historyContainer.appendChild(historyItem);
+            });
+        }
+        
+        // Utility Functions
+        async function logHistory(action, details) {
+            try {
+                await db.collection('history').add({
+                    userId: currentUser.uid,
+                    action: action,
+                    details: details,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Reload history to show the new entry
+                loadHistory();
+            } catch (error) {
+                console.error('Error logging history:', error);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Success feedback is handled in the event listener
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
+</body>
+</html>
