@@ -26,6 +26,7 @@
             --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
             --border-radius: 8px;
             --transition: all 0.3s ease;
+            --blur-bg: blur(5px);
         }
 
         .dark-theme {
@@ -54,6 +55,35 @@
             flex-direction: column;
         }
 
+        /* Loading Animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-circle {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(67, 97, 238, 0.2);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .container {
             width: 100%;
             max-width: 1200px;
@@ -69,6 +99,8 @@
             min-height: 100vh;
             background-color: var(--white);
             padding: 20px;
+            opacity: 0;
+            transition: opacity 0.7s ease;
         }
 
         .auth-card {
@@ -79,6 +111,37 @@
             width: 100%;
             max-width: 450px;
             transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* RGB Glow Effect */
+        .rgb-glow {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                rgba(67, 97, 238, 0.8), 
+                rgba(114, 9, 183, 0.8), 
+                rgba(76, 201, 240, 0.8), 
+                rgba(67, 97, 238, 0.8));
+            background-size: 400% 400%;
+            animation: rgbGlow 6s ease infinite;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .rgb-glow.active {
+            opacity: 0.1;
+        }
+
+        @keyframes rgbGlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .auth-header {
@@ -181,6 +244,30 @@
             background-color: var(--gray-light);
         }
 
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 15px 0;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .divider::before {
+            margin-right: 10px;
+        }
+
+        .divider::after {
+            margin-left: 10px;
+        }
+
         .auth-footer {
             text-align: center;
             margin-top: 20px;
@@ -192,10 +279,12 @@
             text-decoration: none;
             font-weight: 600;
             cursor: pointer;
+            transition: var(--transition);
         }
 
         .auth-link:hover {
             text-decoration: underline;
+            transform: translateY(-1px);
         }
 
         .error-message {
@@ -210,6 +299,8 @@
             display: none;
             flex-direction: column;
             min-height: 100vh;
+            opacity: 0;
+            transition: opacity 0.7s ease;
         }
 
         .header {
@@ -231,6 +322,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 28px;
         }
 
         .logo h1 {
@@ -262,14 +358,6 @@
             font-weight: bold;
         }
 
-        .theme-toggle {
-            background: none;
-            border: none;
-            color: var(--gray);
-            cursor: pointer;
-            font-size: 20px;
-        }
-
         .logout-btn {
             background: none;
             border: none;
@@ -279,6 +367,11 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
         }
 
         .main-content {
@@ -316,6 +409,7 @@
         .nav-tab:hover {
             background-color: var(--gray-light);
             color: var(--dark);
+            transform: translateX(5px);
         }
 
         .nav-tab.active {
@@ -332,6 +426,12 @@
 
         .tab-content {
             display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .tab-content.active {
@@ -368,7 +468,7 @@
 
         .add-btn:hover {
             background-color: var(--primary-dark);
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.05);
         }
 
         /* Password Cards */
@@ -385,6 +485,12 @@
             padding: 20px;
             transition: var(--transition);
             border: 1px solid var(--gray-light);
+            animation: cardAppear 0.5s ease;
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card:hover {
@@ -421,6 +527,7 @@
 
         .action-btn:hover {
             color: var(--primary);
+            transform: scale(1.1);
         }
 
         .card-field {
@@ -449,10 +556,12 @@
             color: var(--gray);
             cursor: pointer;
             font-size: 14px;
+            transition: var(--transition);
         }
 
         .copy-btn:hover {
             color: var(--primary);
+            transform: scale(1.1);
         }
 
         /* Notes Cards */
@@ -463,6 +572,8 @@
             padding: 20px;
             transition: var(--transition);
             border-top: 4px solid var(--primary);
+            position: relative;
+            animation: cardAppear 0.5s ease;
         }
 
         .note-card.yellow {
@@ -509,6 +620,77 @@
             cursor: pointer;
             font-size: 14px;
             margin-top: 5px;
+            transition: var(--transition);
+        }
+
+        .read-more:hover {
+            transform: translateY(-1px);
+        }
+
+        /* Note Detail Popup */
+        .note-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: var(--blur-bg);
+        }
+
+        .note-popup-content {
+            background-color: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            animation: popupAppear 0.3s ease;
+        }
+
+        @keyframes popupAppear {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .note-popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .note-popup-title {
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .close-popup {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-popup:hover {
+            color: var(--danger);
+            transform: scale(1.1);
+        }
+
+        .note-popup-body {
+            color: var(--dark);
+            line-height: 1.6;
         }
 
         /* History Logs */
@@ -524,6 +706,7 @@
             padding: 15px;
             box-shadow: var(--shadow);
             border-left: 4px solid var(--info);
+            animation: cardAppear 0.5s ease;
         }
 
         .history-header {
@@ -547,6 +730,50 @@
             font-size: 14px;
         }
 
+        .view-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 8px;
+            transition: var(--transition);
+        }
+
+        .view-more-btn:hover {
+            text-decoration: underline;
+            transform: translateY(-1px);
+        }
+
+        .history-details-full {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--dark);
+            white-space: pre-wrap;
+        }
+
+        .load-more-btn {
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            margin: 20px auto;
+            display: block;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .load-more-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
         /* Settings */
         .settings-section {
             background-color: var(--white);
@@ -554,6 +781,7 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
+            animation: cardAppear 0.5s ease;
         }
 
         .settings-title {
@@ -571,6 +799,16 @@
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px solid var(--gray-light);
+            transition: var(--transition);
+        }
+
+        .settings-option:hover {
+            background-color: rgba(0,0,0,0.02);
+            padding-left: 10px;
+            padding-right: 10px;
+            margin-left: -10px;
+            margin-right: -10px;
+            border-radius: 4px;
         }
 
         .settings-option:last-child {
@@ -650,6 +888,7 @@
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            backdrop-filter: var(--blur-bg);
         }
 
         .modal-content {
@@ -660,6 +899,7 @@
             max-width: 500px;
             padding: 30px;
             position: relative;
+            animation: popupAppear 0.3s ease;
         }
 
         .modal-header {
@@ -680,6 +920,12 @@
             font-size: 24px;
             color: var(--gray);
             cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+            transform: scale(1.1);
         }
 
         .modal-body {
@@ -698,19 +944,23 @@
         .btn-cancel {
             background-color: var(--gray-light);
             color: var(--dark);
+            transition: var(--transition);
         }
 
         .btn-cancel:hover {
             background-color: #d1d5db;
+            transform: translateY(-2px);
         }
 
         .btn-save {
             background-color: var(--primary);
             color: var(--white);
+            transition: var(--transition);
         }
 
         .btn-save:hover {
             background-color: var(--primary-dark);
+            transform: translateY(-2px);
         }
 
         .color-options {
@@ -725,6 +975,11 @@
             border-radius: 50%;
             cursor: pointer;
             border: 2px solid transparent;
+            transition: var(--transition);
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
         }
 
         .color-option.selected {
@@ -775,10 +1030,12 @@
         .btn-confirm {
             background-color: var(--danger);
             color: var(--white);
+            transition: var(--transition);
         }
 
         .btn-confirm:hover {
             background-color: #e11574;
+            transform: translateY(-2px);
         }
 
         /* Loading Spinner */
@@ -794,6 +1051,17 @@
 
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            text-align: center;
+            animation: cardAppear 0.5s ease;
         }
 
         /* Responsive Design */
@@ -840,9 +1108,15 @@
     </style>
 </head>
 <body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-circle"></div>
+    </div>
+    
     <!-- Authentication Section -->
     <div id="auth-container" class="auth-container">
         <div class="auth-card">
+            <div class="rgb-glow" id="rgb-glow"></div>
             <div class="auth-header">
                 <h1>Notes Clips</h1>
                 <p>Secure Password & Notes Manager</p>
@@ -933,13 +1207,10 @@
         <header class="header">
             <div class="container header-content">
                 <div class="logo">
-                    <i class="fas fa-clipboard-list"></i>
+                    <i class="fas fa-clipboard-list logo-icon"></i>
                     <h1>Notes Clips</h1>
                 </div>
                 <div class="user-menu">
-                    <button class="theme-toggle" id="theme-toggle">
-                        <i class="fas fa-moon"></i>
-                    </button>
                     <div class="user-info">
                         <div class="avatar" id="user-avatar">U</div>
                         <span id="username-display">User</span>
@@ -1012,12 +1283,17 @@
                     <div class="history-list" id="history-container">
                         <!-- History items will be dynamically added here -->
                     </div>
+                    <button class="load-more-btn" id="load-more-history" style="display: none;">Load More</button>
                 </div>
                 
                 <!-- Settings Tab -->
                 <div id="settings-tab" class="tab-content">
                     <div class="tab-header">
                         <h2 class="tab-title">Settings & Preferences</h2>
+                    </div>
+                    
+                    <div class="welcome-message" id="welcome-message">
+                        Hi, <span id="welcome-username">User</span>! 🎉
                     </div>
                     
                     <div class="settings-section">
@@ -1052,6 +1328,13 @@
                             <i class="fas fa-user-cog"></i>
                             <span>Account Settings</span>
                         </h3>
+                        <div class="settings-option">
+                            <div class="option-label">
+                                <span class="option-title">Change Username</span>
+                                <span class="option-desc">Update your display name</span>
+                            </div>
+                            <button class="btn btn-primary" id="change-username-btn">Change</button>
+                        </div>
                         <div class="settings-option">
                             <div class="option-label">
                                 <span class="option-title">Change Password</span>
@@ -1147,6 +1430,39 @@
         </div>
     </div>
     
+    <!-- Note Detail Popup -->
+    <div id="note-popup" class="note-popup">
+        <div class="note-popup-content">
+            <div class="note-popup-header">
+                <h3 class="note-popup-title" id="note-popup-title">Note Title</h3>
+                <button class="close-popup" id="close-note-popup">&times;</button>
+            </div>
+            <div class="note-popup-body" id="note-popup-body">
+                <!-- Note content will be displayed here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Change Username Modal -->
+    <div id="change-username-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Change Username</h3>
+                <button class="close-modal" id="close-change-username-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-username">New Username:</label>
+                    <input type="text" id="new-username" class="form-control" required>
+                </div>
+                <div class="form-actions">
+                    <button class="btn btn-cancel" id="cancel-change-username-btn">Cancel</button>
+                    <button class="btn btn-save" id="save-change-username-btn">Change Username</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Change Password Modal -->
     <div id="change-password-modal" class="modal">
         <div class="modal-content">
@@ -1228,6 +1544,7 @@
     <!-- Application JavaScript -->
     <script>
         // DOM Elements
+        const loadingScreen = document.getElementById('loading-screen');
         const authContainer = document.getElementById('auth-container');
         const dashboard = document.getElementById('dashboard');
         const loginForm = document.getElementById('login-form');
@@ -1237,11 +1554,12 @@
         const loginError = document.getElementById('login-error');
         const signupError = document.getElementById('signup-error');
         const logoutBtn = document.getElementById('logout-btn');
-        const themeToggle = document.getElementById('theme-toggle');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         const showPasswordsToggle = document.getElementById('show-passwords-toggle');
         const userAvatar = document.getElementById('user-avatar');
         const usernameDisplay = document.getElementById('username-display');
+        const welcomeUsername = document.getElementById('welcome-username');
+        const rgbGlow = document.getElementById('rgb-glow');
         
         // Tab Navigation
         const navTabs = document.querySelectorAll('.nav-tab');
@@ -1268,11 +1586,23 @@
         const noteModalTitle = document.getElementById('note-modal-title');
         const colorOptions = document.querySelectorAll('.color-option');
         
+        // Note Popup Elements
+        const notePopup = document.getElementById('note-popup');
+        const notePopupTitle = document.getElementById('note-popup-title');
+        const notePopupBody = document.getElementById('note-popup-body');
+        const closeNotePopup = document.getElementById('close-note-popup');
+        
         // History Elements
         const historyContainer = document.getElementById('history-container');
+        const loadMoreHistoryBtn = document.getElementById('load-more-history');
         
         // Settings Elements
+        const changeUsernameBtn = document.getElementById('change-username-btn');
         const changePasswordBtn = document.getElementById('change-password-btn');
+        const changeUsernameModal = document.getElementById('change-username-modal');
+        const closeChangeUsernameModal = document.getElementById('close-change-username-modal');
+        const cancelChangeUsernameBtn = document.getElementById('cancel-change-username-btn');
+        const saveChangeUsernameBtn = document.getElementById('save-change-username-btn');
         const changePasswordModal = document.getElementById('change-password-modal');
         const closeChangePasswordModal = document.getElementById('close-change-password-modal');
         const cancelChangePasswordBtn = document.getElementById('cancel-change-password-btn');
@@ -1295,19 +1625,41 @@
         let editingItem = null;
         let selectedColor = 'default';
         let showPasswords = false;
+        let historyLimit = 10;
+        let historyLastDoc = null;
+        let hasMoreHistory = false;
         
         // Initialize the application
         document.addEventListener('DOMContentLoaded', initApp);
         
         function initApp() {
+            // Show loading screen initially
+            loadingScreen.style.display = 'flex';
+            
             // Check authentication state
             auth.onAuthStateChanged(user => {
                 if (user) {
                     currentUser = user;
-                    showDashboard();
+                    
+                    // Hide loading and show dashboard with fade transition
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            showDashboard();
+                        }, 500);
+                    }, 700);
+                    
                     loadUserData();
                 } else {
-                    showAuth();
+                    // Hide loading and show auth with fade transition
+                    setTimeout(() => {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            showAuth();
+                        }, 500);
+                    }, 700);
                 }
             });
             
@@ -1334,7 +1686,6 @@
             });
             
             // Theme Toggle
-            themeToggle.addEventListener('click', toggleTheme);
             darkModeToggle.addEventListener('change', toggleDarkMode);
             
             // Password Visibility Toggle
@@ -1353,6 +1704,9 @@
             cancelNoteBtn.addEventListener('click', () => closeModal(noteModal));
             saveNoteBtn.addEventListener('click', saveNote);
             
+            // Note Popup
+            closeNotePopup.addEventListener('click', () => closeModal(notePopup));
+            
             // Color Selection
             colorOptions.forEach(option => {
                 option.addEventListener('click', () => {
@@ -1363,10 +1717,18 @@
             });
             
             // Settings
+            changeUsernameBtn.addEventListener('click', () => openModal(changeUsernameModal));
+            closeChangeUsernameModal.addEventListener('click', () => closeModal(changeUsernameModal));
+            cancelChangeUsernameBtn.addEventListener('click', () => closeModal(changeUsernameModal));
+            saveChangeUsernameBtn.addEventListener('click', changeUsername);
+            
             changePasswordBtn.addEventListener('click', () => openModal(changePasswordModal));
             closeChangePasswordModal.addEventListener('click', () => closeModal(changePasswordModal));
             cancelChangePasswordBtn.addEventListener('click', () => closeModal(changePasswordModal));
             saveChangePasswordBtn.addEventListener('click', changePassword);
+            
+            // History
+            loadMoreHistoryBtn.addEventListener('click', loadMoreHistory);
             
             // Confirmation Modal
             cancelConfirmationBtn.addEventListener('click', () => closeModal(confirmationModal));
@@ -1394,16 +1756,35 @@
         function showAuth() {
             authContainer.style.display = 'flex';
             dashboard.style.display = 'none';
+            
+            // Fade in auth container
+            setTimeout(() => {
+                authContainer.style.opacity = '1';
+            }, 50);
+            
+            // Show RGB glow effect for first-time visitors
+            if (!localStorage.getItem('visitedBefore')) {
+                setTimeout(() => {
+                    rgbGlow.classList.add('active');
+                    localStorage.setItem('visitedBefore', 'true');
+                }, 1000);
+            }
         }
         
         function showDashboard() {
             authContainer.style.display = 'none';
             dashboard.style.display = 'flex';
             
+            // Fade in dashboard
+            setTimeout(() => {
+                dashboard.style.opacity = '1';
+            }, 50);
+            
             // Update user info
             if (currentUser) {
                 const displayName = currentUser.displayName || currentUser.email || 'User';
                 usernameDisplay.textContent = displayName;
+                welcomeUsername.textContent = displayName;
                 userAvatar.textContent = displayName.charAt(0).toUpperCase();
                 
                 // Load user preferences
@@ -1415,12 +1796,24 @@
             loginForm.style.display = 'flex';
             signupForm.style.display = 'none';
             clearErrors();
+            
+            // Add transition effect
+            loginForm.style.animation = 'fadeIn 0.5s ease';
+            setTimeout(() => {
+                loginForm.style.animation = '';
+            }, 500);
         }
         
         function showSignupForm() {
             loginForm.style.display = 'none';
             signupForm.style.display = 'flex';
             clearErrors();
+            
+            // Add transition effect
+            signupForm.style.animation = 'fadeIn 0.5s ease';
+            setTimeout(() => {
+                signupForm.style.animation = '';
+            }, 500);
         }
         
         function clearErrors() {
@@ -1560,23 +1953,8 @@
         }
         
         // Theme Functions
-        function toggleTheme() {
-            document.body.classList.toggle('dark-theme');
-            const isDark = document.body.classList.contains('dark-theme');
-            themeToggle.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            darkModeToggle.checked = isDark;
-            
-            // Save preference to Firestore
-            if (currentUser) {
-                db.collection('userPreferences').doc(currentUser.uid).set({
-                    darkMode: isDark
-                }, { merge: true });
-            }
-        }
-        
         function toggleDarkMode() {
             document.body.classList.toggle('dark-theme', darkModeToggle.checked);
-            themeToggle.innerHTML = darkModeToggle.checked ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
             
             // Save preference to Firestore
             if (currentUser) {
@@ -1677,7 +2055,14 @@
                     });
                     
                     // Log the action
-                    await logHistory('Updated password', `Updated password for ${platformName}`);
+                    await logHistory('Updated password', `Updated password for ${platformName}`, {
+                        oldPlatformName: editingItem.platformName,
+                        newPlatformName: platformName,
+                        oldUsername: editingItem.username,
+                        newUsername: username,
+                        oldPassword: editingItem.password1,
+                        newPassword: password1
+                    });
                 } else {
                     // Add new password
                     await db.collection('passwords').add({
@@ -1690,7 +2075,10 @@
                     });
                     
                     // Log the action
-                    await logHistory('Added password', `Added password for ${platformName}`);
+                    await logHistory('Added password', `Added password for ${platformName}`, {
+                        platformName: platformName,
+                        username: username
+                    });
                 }
                 
                 closeModal(passwordModal);
@@ -1737,6 +2125,12 @@
             openModal(noteModal);
         }
         
+        function openNotePopup(note) {
+            notePopupTitle.textContent = note.title;
+            notePopupBody.innerHTML = note.content.replace(/\n/g, '<br>');
+            openModal(notePopup);
+        }
+        
         async function saveNote() {
             const title = document.getElementById('note-title').value;
             const content = document.getElementById('note-content').value;
@@ -1757,7 +2151,12 @@
                     });
                     
                     // Log the action
-                    await logHistory('Updated note', `Updated note: ${title}`);
+                    await logHistory('Updated note', `Updated note: ${title}`, {
+                        oldTitle: editingItem.title,
+                        newTitle: title,
+                        oldContent: editingItem.content,
+                        newContent: content
+                    });
                 } else {
                     // Add new note
                     await db.collection('notes').add({
@@ -1769,7 +2168,9 @@
                     });
                     
                     // Log the action
-                    await logHistory('Added note', `Added note: ${title}`);
+                    await logHistory('Added note', `Added note: ${title}`, {
+                        title: title
+                    });
                 }
                 
                 closeModal(noteModal);
@@ -1797,6 +2198,42 @@
         }
         
         // Settings Functions
+        async function changeUsername() {
+            const newUsername = document.getElementById('new-username').value;
+            
+            if (!newUsername) {
+                alert('Please enter a new username.');
+                return;
+            }
+            
+            try {
+                // Update user profile
+                await currentUser.updateProfile({
+                    displayName: newUsername
+                });
+                
+                // Update user document in Firestore
+                await db.collection('users').doc(currentUser.uid).update({
+                    username: newUsername,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Update UI
+                usernameDisplay.textContent = newUsername;
+                welcomeUsername.textContent = newUsername;
+                userAvatar.textContent = newUsername.charAt(0).toUpperCase();
+                
+                // Log the action
+                await logHistory('Changed username', `Changed username to ${newUsername}`);
+                
+                alert('Username changed successfully!');
+                closeModal(changeUsernameModal);
+            } catch (error) {
+                console.error('Error changing username:', error);
+                alert('Error changing username. Please try again.');
+            }
+        }
+        
         async function changePassword() {
             const currentPassword = document.getElementById('current-password').value;
             const newPassword = document.getElementById('new-password').value;
@@ -1864,7 +2301,6 @@
                     if (prefs.darkMode) {
                         document.body.classList.add('dark-theme');
                         darkModeToggle.checked = true;
-                        themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
                     }
                     
                     // Set password visibility
@@ -2058,7 +2494,7 @@
                         ${content.replace(/\n/g, '<br>')}
                     </div>
                     ${note.content.length > 150 ? `
-                    <div class="read-more">Read more</div>
+                    <div class="read-more" data-id="${note.id}">Read more</div>
                     ` : ''}
                 `;
                 
@@ -2084,22 +2520,51 @@
             
             document.querySelectorAll('.read-more').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const noteContent = btn.previousElementSibling;
-                    noteContent.classList.toggle('expanded');
-                    btn.textContent = noteContent.classList.contains('expanded') ? 'Read less' : 'Read more';
+                    const noteId = btn.dataset.id;
+                    const note = notes.find(n => n.id === noteId);
+                    openNotePopup(note);
                 });
             });
         }
         
         async function loadHistory() {
             try {
-                const snapshot = await db.collection('history')
+                let query = db.collection('history')
                     .where('userId', '==', currentUser.uid)
                     .orderBy('timestamp', 'desc')
-                    .limit(50)
+                    .limit(historyLimit);
+                
+                if (historyLastDoc) {
+                    query = query.startAfter(historyLastDoc);
+                }
+                
+                const snapshot = await query.get();
+                
+                if (snapshot.empty) {
+                    hasMoreHistory = false;
+                    loadMoreHistoryBtn.style.display = 'none';
+                    return;
+                }
+                
+                // Store the last document for pagination
+                historyLastDoc = snapshot.docs[snapshot.docs.length - 1];
+                
+                // Check if there are more documents
+                const nextSnapshot = await db.collection('history')
+                    .where('userId', '==', currentUser.uid)
+                    .orderBy('timestamp', 'desc')
+                    .startAfter(historyLastDoc)
+                    .limit(1)
                     .get();
                 
-                history = [];
+                hasMoreHistory = !nextSnapshot.empty;
+                loadMoreHistoryBtn.style.display = hasMoreHistory ? 'block' : 'none';
+                
+                // If this is the initial load, clear the history array
+                if (!historyLastDoc || history.length === 0) {
+                    history = [];
+                }
+                
                 snapshot.forEach(doc => {
                     history.push({
                         id: doc.id,
@@ -2111,6 +2576,10 @@
             } catch (error) {
                 console.error('Error loading history:', error);
             }
+        }
+        
+        async function loadMoreHistory() {
+            await loadHistory();
         }
         
         function renderHistory() {
@@ -2142,24 +2611,52 @@
                         <span class="history-time">${timestamp}</span>
                     </div>
                     <div class="history-details">${log.details}</div>
+                    ${log.changes ? `
+                    <button class="view-more-btn" data-id="${log.id}">View Details</button>
+                    <div class="history-details-full" id="history-details-${log.id}">
+${JSON.stringify(log.changes, null, 2)}
+                    </div>
+                    ` : ''}
                 `;
                 
                 historyContainer.appendChild(historyItem);
             });
+            
+            // Add event listeners for view more buttons
+            document.querySelectorAll('.view-more-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const logId = btn.dataset.id;
+                    const detailsElement = document.getElementById(`history-details-${logId}`);
+                    
+                    if (detailsElement.style.display === 'block') {
+                        detailsElement.style.display = 'none';
+                        btn.textContent = 'View Details';
+                    } else {
+                        detailsElement.style.display = 'block';
+                        btn.textContent = 'Hide Details';
+                    }
+                });
+            });
         }
         
         // Utility Functions
-        async function logHistory(action, details) {
+        async function logHistory(action, details, changes = null) {
             try {
                 await db.collection('history').add({
                     userId: currentUser.uid,
                     action: action,
                     details: details,
+                    changes: changes,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
                 // Reload history to show the new entry
-                loadHistory();
+                if (document.getElementById('history-tab').classList.contains('active')) {
+                    // Reset pagination for new entries
+                    history = [];
+                    historyLastDoc = null;
+                    await loadHistory();
+                }
             } catch (error) {
                 console.error('Error logging history:', error);
             }
